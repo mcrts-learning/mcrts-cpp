@@ -1,2 +1,3 @@
-# cpp-101
-Introduction to C++11
+# Introduction to C++
+
+**Coursera** : https://www.coursera.org/learn/initiation-programmation-cpp/home/welcome
