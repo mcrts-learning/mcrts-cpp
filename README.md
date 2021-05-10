@@ -1,3 +1,4 @@
-# Introduction to C++
+# Learning C++11
 
-**Coursera** : https://www.coursera.org/learn/initiation-programmation-cpp/home/welcome
+**Coursera Introduction to C++** : https://www.coursera.org/learn/initiation-programmation-cpp/home/welcome
+**Coursera Object Oriented Programming with C++** : https://www.coursera.org/learn/programmation-orientee-objet-cpp/home/welcome
