@@ -3,112 +3,118 @@
 #include <cmath>
 using namespace std;
 
-/*
-Point3D class definition
-*/
-
+//
+// Point3D
+//
+// --------------------------------------------------------------------
 class Point3D {
-    protected:
-        double x;
-        double y;
-        double z;
-
     public:
-        Point3D(double x, double y, double z)
-        : x(x), y(y), z(z) {}
+        Point3D(): x(0.0), y(0.0), z(0.0){}
 
-        bool compare(Point3D& other) const{
-            return bool(x == other.x and y == other.y and z == other.z);
-        }
+        Point3D(double x, double y, double z): x(x), y(y), z(z){}
 
-        double distance(Point3D& other) const{
-            return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2));
-        }
-
-        ostream& print(ostream& cout) const{
-            cout << "<Point3D x=" << x
-            << " y=" << y
-            << " z=" << z
-            << ">";
-            return cout;
-        }
-};
-
-ostream& operator<<(ostream& cout, Point3D const inst) {
-    return inst.print(cout);
-}
-
-
-/*
-Vecteur class definition
-*/
-
-class Vecteur : public Point3D {
-    public:
-        Vecteur(double x, double y, double z)
-        : Point3D(x, y, z) {}
+        bool operator==(const Point3D& autre) const;
         
-        Vecteur add(Vecteur const& other) const {
-            return Vecteur((x + other.x),  (y + other.y), (z + other.z));
-        }
+        double get_x() const {return x;}
+        double get_y() const {return y;}
+        double get_z() const {return z;}
+    
+    protected:
+        double x, y, z;
+};
+// --------------------------------------------------------------------
+bool Point3D::operator==(const Point3D& p) const {
+    return (p.x == x) and (p.y == y) and (p.z == z);
+}
+// --------------------------------------------------------------------
+ostream& operator<<(ostream& cout, const Point3D& p) {
+    cout << '(' << p.get_x() << ", " << p.get_y() << ", " << p.get_z() << ')';
+    return cout;
+}
+// ====================================================================
 
-        Vecteur multiply(double const& n) const {
-            Vecteur v(0, 0, 0);
-            for (size_t i(0); i < n; i++)
-                v = v.add(*this);
-            return v;
-        }
 
-        double product(Vecteur const& other) const {
-            double scalar(0);
-            scalar += x * other.x;
-            scalar += y * other.y;
-            scalar += z * other.z;
-            return scalar;
-        }
+//
+// Vecteur
+//
+// --------------------------------------------------------------------
+class Vecteur :public Point3D {
+    public:
+        Vecteur(): Point3D(){} 
+        Vecteur(double x, double y, double z): Point3D(x, y, z){}
 
-        double norme() const {
-            return sqrt(this->product(*this));
+        // opérateurs
+        Vecteur& operator+=(const Vecteur& autre) {
+            x += autre.x;
+            y += autre.y;
+            z += autre.z;
+            return*this;
         }
-
-        const Vecteur operator-() const {
+        Vecteur& operator-=(const Vecteur& autre){
+            x -= autre.x;
+            y -= autre.y;
+            z -= autre.z;
+            return*this;
+        }
+        const Vecteur operator-() const{
             return Vecteur(-x, -y, -z);
         }
-
-        ostream& print(ostream& cout) const{
-            cout << "(" << x << " " << y << " " << z << ")";
-            return cout;
+        Vecteur& operator*=(double scal) {
+            x *= scal;
+            y *= scal; 
+            z *= scal;
+            return*this;
         }
+        double norme() const;
+};
+// --------------------------------------------------------------------
+const Vecteur operator+(Vecteur un, const Vecteur& autre) {
+    un += autre;
+    return un;
+}
+const Vecteur operator-(Vecteur un, const Vecteur& autre) {
+    un -= autre;
+    return un;
+}
+double operator*(const Vecteur& un, const Vecteur& autre) {
+    return un.get_x() * autre.get_x() + un.get_y() * autre.get_y() + un.get_z() * autre.get_z();
+}
+const Vecteur operator*(Vecteur un, double x) {
+    un *= x;
+    return un;
+}
+const Vecteur operator*(double x, Vecteur const& v) {
+    return v * x;
+}
+double Vecteur::norme() const {
+    return sqrt(*this * *this);
+}
+double angle(const Vecteur& un, const Vecteur& autre) {
+    return acos((un * autre) / (un.norme() * autre.norme()));
+}
+// ====================================================================
 
-        
+
+
+
+
+class VecteurUnitaire :public Vecteur {
+    public:
+        VecteurUnitaire(): Vecteur(1, 0, 0){} 
+        VecteurUnitaire(double x, double y, double z): Vecteur(x, y, z) {
+            double norme(Vecteur::norme());
+            this->x = x / norme;
+            this->y = y / norme;
+            this->z = z / norme;
+        }
+        Vecteur& normalize() {
+            
+        }
 };
 
-const Vecteur operator+(Vecteur v1, Vecteur const& v2) {
-    return v1.add(v2);
+double angle(VecteurUnitaire const& v1, VecteurUnitaire const& v2) {
+    return acos(v1 * v2);
 }
-
-const Vecteur operator-(Vecteur v1, Vecteur const& v2) {
-    return v1 + (-v2);
-}
-
-const Vecteur operator*(double n, Vecteur const& v) {
-    return v.multiply(n);
-}
-
-const double operator*(Vecteur v1, Vecteur const& v2) {
-    return v1.product(v2);
-}
-
-
-ostream& operator<<(ostream& cout, Vecteur const inst) {
-    return inst.print(cout);
-}
-
-double angle(Vecteur const& v1, Vecteur const& v2) {
-    return acos((v1 * v2) / (v1.norme() * v2.norme()));
-}
-
-
 
 int main() {
     Vecteur v1(1, 2, -0.1);
@@ -136,5 +142,11 @@ int main() {
     cout << "||" << v2 << " ||" << " = " << v2.norme() << endl;
     cout << "angle(" << v2 << ", " << v1 << ")" << " = " << angle(v1, v2) << endl;
 
+    
+    VecteurUnitaire v4(1, 2, 3);
+    VecteurUnitaire v5(1, 1, 1);
+    cout << "||" << v4 << " ||" << " = " << v4.norme() << endl;
+    cout << "||" << v5 << " ||" << " = " << v5.norme() << endl;
+    cout << "angle(" << v4 << ", " << v5 << ")" << " = " << angle(v4, v5) << endl;
     return 0;
 }
