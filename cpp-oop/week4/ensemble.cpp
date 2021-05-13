@@ -3,6 +3,29 @@
 using namespace std;
 
 
+int pgcd(int a, int b) {
+    int u_(1), u(0);
+    int v_(0), v(1);
+    int x(a);
+    int y(b);
+
+    while (y != 1) {
+        int q(x / y);
+        int r(x % y);
+        int u_next(u_ - u * q);
+        int v_next(v_ - v * q);
+
+        x = y;
+        y = r;
+        u_ = u;
+        u = u_next;
+        v_ = v;
+        v = v_next;
+    }
+    return (u + b) % b;
+}
+
+
 // --------------------------------------------------------------------
 
 class EnsembleFini {
@@ -39,7 +62,10 @@ class Corps: public Anneau{
     using Anneau::Anneau;
     public:
         unsigned int inv(unsigned int x) {
-            return x;
+            if (x != 0)
+                return pgcd(x, p);
+            else
+                return 0;
         }
 
         unsigned int div(unsigned int x) {
