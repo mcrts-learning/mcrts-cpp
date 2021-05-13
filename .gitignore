@@ -31,7 +31,6 @@
 *.out
 *.app
 
-# SPECIFIC
-*
-!/**/
-!*.*
+# VScode
+.vscode/
+*.code-workspace
