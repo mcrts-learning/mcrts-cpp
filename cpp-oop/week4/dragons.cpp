@@ -19,13 +19,13 @@ class Creature
     int points_de_vie_;
     int force_;
     int position_;
+    int eval_distance(Creature& bete) const {return distance(position(), bete.position());}
   
   public:
     Creature(string nom_, int niveau_, int points_de_vie_, int force_, int position_=0)
     : nom_(nom_), niveau_(niveau_), points_de_vie_(points_de_vie_), force_(force_), position_(position_) {}
 
     int position() const {return position_;}
-
     bool vivant() const {return bool(points_de_vie_ > 0);}
     int points_attaque() const {
       if (vivant())
@@ -61,9 +61,7 @@ class Dragon: public Creature
 {
   private:
     int portee_flamme_;
-
-    int eval_distance(Creature& bete) {return distance(position(), bete.position());}
-    bool a_portee(Creature& bete) {return bool(eval_distance(bete) <= portee_flamme_);}
+    bool a_portee(Creature& bete) const {return bool(eval_distance(bete) <= portee_flamme_);}
 
   public:
     Dragon(string nom_, int niveau_, int points_de_vie_, int force_, int portee_flamme_, int position_=0)
@@ -90,9 +88,7 @@ class Hydre: public Creature
   private:
     int longueur_cou_;
     int dose_poison_;
-
-    int eval_distance(Creature& bete) {return distance(position(), bete.position());}
-    bool a_portee(Creature& bete) {return bool(eval_distance(bete) <= longueur_cou_);}
+    bool a_portee(Creature& bete) const {return bool(eval_distance(bete) <= longueur_cou_);}
 
   public:
     Hydre(string nom_, int niveau_, int points_de_vie_, int force_, int longueur_cou_, int dose_poison_, int position_=0)
