@@ -34,7 +34,8 @@ class Creature
         return 0;
     }
     void deplacer(int pos) {
-      position_ += pos;
+      if (vivant())
+        position_ += pos;
     }
     void adieux() const {
       cout << nom_ << " n'est plus!" << endl;
@@ -69,7 +70,8 @@ class Dragon: public Creature
     : Creature(nom_, niveau_, points_de_vie_, force_, position_), portee_flamme_(portee_flamme_) {}
 
     void voler(int pos) {
-      position_ = pos;
+      if (vivant())
+        position_ = pos;
     }
 
     void souffle_sur(Creature& bete) {
@@ -77,9 +79,8 @@ class Dragon: public Creature
         bete.faiblir(points_attaque());
         faiblir(eval_distance(bete));
 
-        if (vivant() and !bete.vivant()) {
+        if (vivant() and !bete.vivant())
           niveau_++;
-        }
       }
     }
 };
@@ -101,9 +102,8 @@ class Hydre: public Creature
       if (vivant() and bete.vivant() and a_portee(bete)) {
         bete.faiblir(points_attaque() + dose_poison_);
 
-        if (vivant() and !bete.vivant()) {
+        if (vivant() and !bete.vivant())
           niveau_++;
-        }
       }
     }
 };
