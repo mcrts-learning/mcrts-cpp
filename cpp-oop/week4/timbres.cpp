@@ -54,28 +54,29 @@ private:
   static constexpr unsigned int PRIX_BASE_RARE = 400;
   static constexpr unsigned int PRIX_BASE_PEU_RARE = 50;
 
-  unsigned int exemplaire;
+  unsigned int nb_exemplaire_;
   unsigned int getBasePrix() const {
-    if (exemplaire < 100)
+    if (nb_exemplaire() < 100)
       return PRIX_BASE_TRES_RARE;
-    else if( (100 <= exemplaire) and (exemplaire < 1000) )
+    else if( (100 <= nb_exemplaire()) and (nb_exemplaire() < 1000) )
       return PRIX_BASE_RARE;
     else
       return PRIX_BASE_PEU_RARE;
   }
 
 public:
+  unsigned int nb_exemplaire() const {return nb_exemplaire_;}
   double vente() const {
     return getBasePrix() * ( age() / 10.0 );
   }
   void print(ostream& strm) const {
-    strm << "Timbre rare (" << exemplaire << " ex.) ";
+    strm << "Timbre rare (" << nb_exemplaire() << " ex.) ";
     afficher(strm);
   }
 
 public:
-  Rare(string nom, unsigned int annee, string pays, double valeur_faciale, unsigned int exemplaire)
-  : Timbre(nom, annee, pays, valeur_faciale), exemplaire(exemplaire) {}
+  Rare(string nom, unsigned int annee, string pays, double valeur_faciale, unsigned int nb_exemplaire_=100)
+  : Timbre(nom, annee, pays, valeur_faciale), nb_exemplaire_(nb_exemplaire_) {}
 };
 
 // --------------------------------------------------------------------
