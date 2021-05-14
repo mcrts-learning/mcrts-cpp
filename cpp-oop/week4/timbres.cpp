@@ -75,7 +75,7 @@ public:
   }
 
 public:
-  Rare(string nom, unsigned int annee, string pays, double valeur_faciale, unsigned int nb_exemplaires_=100)
+  Rare(string nom, unsigned int annee, string pays="Suisse", double valeur_faciale=1.0, unsigned int nb_exemplaires_=100)
   : Timbre(nom, annee, pays, valeur_faciale), nb_exemplaires_(nb_exemplaires_) {}
 };
 
@@ -98,7 +98,7 @@ public:
     afficher(strm);
   }
 public:
-  Commemoratif(string nom, unsigned int annee, string pays, double valeur_faciale)
+  Commemoratif(string nom, unsigned int annee, string pays="Suisse", double valeur_faciale=1.0)
   : Timbre(nom, annee, pays, valeur_faciale) {}
 };
 
