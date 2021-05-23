@@ -33,13 +33,71 @@ class Navire
    * Compléter le code à partir d'ici
    *****************************************************/
 
+public:
+  void rencontrer(Navire const& rhs);
+  const Coordonnees& getCoordonnees() const;
+
 };
+//======================================================
 
-void Coordonnees::operator+=(Coordonnees const& autre)
+void Coordonnees::operator+=(Coordonnees const& rhs)
+  {
+    this->x_ += rhs.x();
+    this->y_ += rhs.y();
+  }
+double distance(Coordonnees const& lhs, Coordonnees const& rhs)
+  { return sqrt(sq(lhs.x() - rhs.x()) + sq(lhs.y() - rhs.y())); }
+ostream& operator<<(ostream& ostr, Coordonnees const& inst)
+ {
+   ostr << "(" << inst.x() << ", " << inst.y() << ")";
+   return ostr;
+ }
+//======================================================
+
+ostream& operator<<(ostream& ostr, Navire const& inst)
+  { return ostr; }
+double distance(Navire const& lhs, Navire const& rhs)
+  { return distance(lhs.getCoordonnees(), rhs.getCoordonnees()); }
+//======================================================
+
+string to_string(Pavillon inst)
 {
-  // à définir ici
-
+  switch (inst) {
+    case JollyRogers:
+      return "pirate";
+    case CompagnieDuSenegal:
+      return "français";
+    case CompagnieDOstende:
+      return "autrichien";
+    default:
+      return "pavillon inconnu";
+  }
 }
+ostream& operator<<(ostream& ostr, Pavillon inst)
+  { 
+    ostr << to_string(inst);
+    return ostr;
+  }
+
+string to_string(Etat inst)
+  {
+    switch (inst) {
+      case Intact:
+        return "intact";
+      case Endommage:
+        return "yant subi des dommages";
+      case Coule:
+        return "coulé";
+      default:
+        return "état inconnu";
+    }
+  }
+ostream& operator<<(ostream& ostr, Etat inst)
+  { 
+    ostr << to_string(inst);
+    return ostr;
+  }
+//======================================================
 
 /*******************************************
  * Ne rien modifier après cette ligne.
@@ -58,7 +116,7 @@ void rencontre(Navire& ship1, Navire& ship2)
 }
 
 int main()
-{
+{/*
   // Test de la partie 1
   cout << "===== Test de la partie 1 =====" << endl << endl;
 
@@ -111,6 +169,6 @@ int main()
 
   cout << endl << "Felon vs Pirate :" << endl;
   rencontre(ship6, ship3);
-
+*/
   return 0;
 }
