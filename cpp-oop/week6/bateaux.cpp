@@ -32,11 +32,22 @@ class Navire
   /*****************************************************
    * Compléter le code à partir d'ici
    *****************************************************/
-
+private:
+  Coordonnees position_;
+  Pavillon pavillon_;
+  Etat etat_;
+  static const int rayon_rencontre = 10;
+  string nom = "Navire";
 public:
-  void rencontrer(Navire const& rhs);
-  const Coordonnees& getCoordonnees() const;
+  Navire(int, int, Pavillon, Etat);
 
+  void avancer(int, int);
+  void renflouer();
+  virtual void rencontrer(Navire const& rhs) = 0;
+
+  const Coordonnees& position() const;
+  string toString() const;
+  void afficher(ostream&) const;
 };
 //======================================================
 
@@ -47,17 +58,45 @@ void Coordonnees::operator+=(Coordonnees const& rhs)
   }
 double distance(Coordonnees const& lhs, Coordonnees const& rhs)
   { return sqrt(sq(lhs.x() - rhs.x()) + sq(lhs.y() - rhs.y())); }
+string to_string(Coordonnees const& inst)
+  { return "(" + to_string(inst.x()) + ", " + to_string(inst.y()) + ")"; }
 ostream& operator<<(ostream& ostr, Coordonnees const& inst)
  {
-   ostr << "(" << inst.x() << ", " << inst.y() << ")";
+   ostr << to_string(inst);
    return ostr;
  }
 //======================================================
 
+Navire::Navire(int x, int y, Pavillon pavillon, Etat etat=Intact)
+  : position_(x, y), pavillon_(pavillon), etat_(etat) {}
+
+void Navire::renflouer()
+  { etat_ = Intact; }
+void Navire::avancer(int x, int y)
+  { 
+    if (etat_ != Coule)
+      position_ = Coordonnees(x, y);
+  }
+
+const Coordonnees& Navire::position() const
+  { return position_; }
+string Navire::toString() const
+  { 
+    string msg;
+    msg += nom + " en " + to_string(position()) + " battant pavillon " + to_string(pavillon_) + "," + to_string(etat_);
+    return msg;
+  }
+void Navire::afficher(ostream& ostr) const
+  { ostr << toString(); }
+//======================================================
+
 ostream& operator<<(ostream& ostr, Navire const& inst)
-  { return ostr; }
+  { 
+    inst.afficher(ostr);
+    return ostr;
+  }
 double distance(Navire const& lhs, Navire const& rhs)
-  { return distance(lhs.getCoordonnees(), rhs.getCoordonnees()); }
+  { return distance(lhs.position(), rhs.position()); }
 //======================================================
 
 string to_string(Pavillon inst)
@@ -78,7 +117,6 @@ ostream& operator<<(ostream& ostr, Pavillon inst)
     ostr << to_string(inst);
     return ostr;
   }
-
 string to_string(Etat inst)
   {
     switch (inst) {
