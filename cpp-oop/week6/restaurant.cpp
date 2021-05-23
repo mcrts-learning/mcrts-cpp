@@ -46,16 +46,6 @@ inline bool operator==(Produit const& lhs, Produit const& rhs)
   { return bool(lhs.getNom() == rhs.getNom() and lhs.getUnite() == rhs.getUnite()); }
 inline bool operator!=(Produit const& lhs, Produit const& rhs)
   { return !(lhs == rhs); }
-
-void testProduit() {
-  Produit p("oeufs");
-  cout << bool(p.getNom() == "oeufs") << " | test Produit::getNom()" << endl;
-  cout << bool(p.getUnite() == "") << " | test Produit::getUnite()" << endl;
-  cout << bool(p.toString() == "oeufs") << " | test Produit::toString()" << endl;
-  cout << bool(*p.adapter(2) == p) << " | test Produit::adapter()" << endl;
-  cout << bool(p.quantiteTotale("oeufs") == 1.0) << " | test Produit::quantiteTotale()" << endl;
-  cout << bool(p.quantiteTotale("sel") == 0.0) << " | test Produit::quantiteTotale()" << endl;
-}
 //====================================================
 
 class Ingredient {
@@ -82,36 +72,8 @@ string Ingredient::descriptionAdaptee() const
   { return to_string(quantite) + " " + produit.getUnite() + " de " + produit.adapter(quantite)->toString(); }
 double Ingredient::quantiteTotale(string const& nom_produit) const
   { return produit.quantiteTotale(nom_produit) * quantite; }
-
-void testIngredient() {
-  {
-    Produit p("oeufs");
-    {    
-      Ingredient i(p, 2);
-      cout << bool(i.getQuantite() == 2) << " | test Ingredient::getQuantite()" << endl;
-      cout << bool(i.getProduit() == p) << " | test Ingredient::getProduit()" << endl;
-      cout << bool(i.descriptionAdaptee() == "2.000000  de oeufs") << " | test Ingredient::descriptionAdaptee()" << endl;
-      cout << bool(i.quantiteTotale("oeufs") == 2.0) << " | test Ingredient::quantiteTotale()" << endl;
-      cout << bool(i.quantiteTotale("sel") == 0.0) << " | test Ingredient::quantiteTotale()" << endl;
-    }
-
-    {
-      Ingredient i(p, 4);
-      cout << bool(i.getQuantite() == 4) << " | test Ingredient::getQuantite()" << endl;
-      cout << bool(i.getProduit() == p) << " | test Ingredient::getProduit()" << endl;
-      cout << bool(i.descriptionAdaptee() == "4.000000  de oeufs") << " | test Ingredient::descriptionAdaptee()" << endl;
-    }
-  }
-
-  {
-    Produit p("sel", "gramme(s)");
-    Ingredient i(p, 10);
-    cout << bool(i.getQuantite() == 10) << " | test Ingredient::getQuantite()" << endl;
-    cout << bool(i.getProduit() == p) << " | test Ingredient::getProduit()" << endl;
-    cout << bool(i.descriptionAdaptee() == "10.000000 gramme(s) de sel") << " | test Ingredient::descriptionAdaptee()" << endl;
-  }
-}
 //====================================================
+
 typedef Ingredient* pIngredient;
 
 class Recette {
@@ -125,7 +87,7 @@ public:
   ~Recette();
   void clear();
   void ajouter(Produit const&, double);
-  Recette adapter(int) const;
+  Recette adapter(double) const;
   string toString() const;
   double quantiteTotale(string const&) const;
 };
@@ -142,7 +104,7 @@ void Recette::clear()
   }
 void Recette::ajouter(Produit const& p, double quantite)
   { ingredients.push_back(new Ingredient(p, quantite * nbFois_));}
-Recette Recette::adapter(int n) const
+Recette Recette::adapter(double n) const
   {
     Recette recette(nom, nbFois_ * n);
     for (auto& i : ingredients) {
@@ -167,68 +129,6 @@ double Recette::quantiteTotale(string const& nom_produit) const
       count += i->quantiteTotale(nom_produit);
     return count;
   }
-
-
-void testRecette() {
-  {
-    Produit p("oeufs");
-    Recette r("omelette");
-    ostringstream oss;
-    oss << "  Recette " << '"' << "omelette" << '"' << " x 1:";
-    cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
-    r.ajouter(p, 2);
-    oss << endl << "  1. 2.000000  de oeufs";
-    cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
-    cout << bool(r.quantiteTotale("oeufs") == 2.0) << " | test Recette::quantiteTotale()" << endl;
-    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
-  }
-
-  {
-    Produit p("oeufs");
-    Recette r("omelette");
-    r.ajouter(p, 2);
-    r.ajouter(p, 10);
-    cout << bool(r.quantiteTotale("oeufs") == 12.0) << " | test Recette::quantiteTotale()" << endl;
-    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
-  }
-
-  {
-    Produit p("oeufs");
-    Recette r("omelette pour deux", 2);
-    ostringstream oss;
-    oss << "  Recette " << '"' << "omelette pour deux" << '"' << " x 2:";
-    cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
-    r.ajouter(p, 2);
-    oss << endl << "  1. 4.000000  de oeufs";
-    cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
-    cout << bool(r.quantiteTotale("oeufs") == 4.0) << " | test Recette::quantiteTotale()" << endl;
-    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
-  }
-
-  {
-    Produit p("oeufs");
-    Recette r("omelette pour deux");
-    r.ajouter(p, 2);
-    Recette r_adpat = r.adapter(10);
-    ostringstream oss;
-    oss << "  Recette " << '"' << "omelette pour deux" << '"' << " x 10:";
-    oss << endl << "  1. 20.000000  de oeufs";
-    cout << bool(r_adpat.toString() == oss.str()) << " | test Recette::toString()" << endl;
-    cout << bool(r_adpat.quantiteTotale("oeufs") == 20.0) << " | test Recette::quantiteTotale()" << endl;
-    cout << bool(r_adpat.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
-  }
-
-  {
-    Produit p("oeufs");
-    Recette r("omelette pour trois", 2);
-    r.ajouter(p, 3);
-    Recette r_adpat = r.adapter(10);
-    ostringstream oss;
-    oss << "  Recette " << '"' << "omelette pour trois" << '"' << " x 20:";
-    oss << endl << "  1. 60.000000  de oeufs";
-    cout << bool(r_adpat.toString() == oss.str()) << " | test Recette::toString()" << endl;
-  }
-}
 //====================================================
 
 class ProduitCuisine: public Produit {
@@ -251,8 +151,9 @@ void ProduitCuisine::ajouterARecette(Produit const& produit, double quantite)
 const ProduitCuisine* ProduitCuisine::adapter(double n) const
   {
     ProduitCuisine* produit = new ProduitCuisine(nom, unite, n);
-    for (auto& i : this->recette.adapter(n).ingredients)
+    for (auto& i : recette.adapter(n).ingredients) {
       produit->recette.ajouter(i->getProduit(), i->getQuantite() / n);
+    }
     return produit;
   }
 string ProduitCuisine::toString() const
@@ -269,107 +170,6 @@ double ProduitCuisine::quantiteTotale(string const& nom_produit) const
     else
       return recette.quantiteTotale(nom_produit);
   }
-
-void testProduitCusine() {
-  {
-    ProduitCuisine p("omelette");
-    cout << " | test ProduitCuisine::toString()" << endl << p.toString() << endl;
-    cout << endl;
-  }
-
-  {
-    ProduitCuisine p("omelette");
-    p.ajouterARecette(Produit("oeufs"), 2);
-    p.ajouterARecette(Produit("sel", "pincée(s)"), 1);
-    p.ajouterARecette(Produit("beurre", "gramme(s)"), 5);
-    cout << " | test ProduitCuisine::ajouterARecette()" << endl << p.toString() << endl;
-    cout << endl;
-  }
-
-  {
-    ProduitCuisine p("omelette");
-    p.ajouterARecette(Produit("oeufs"), 2);
-    p.ajouterARecette(Produit("sel", "pincée(s)"), 1);
-    p.ajouterARecette(Produit("beurre", "gramme(s)"), 5);
-    cout << " | test ProduitCuisine::adapter()" << endl << p.adapter(2)->toString() << endl;
-    cout << endl;
-  }
-  {
-    Produit oeufs("oeufs");
-    Produit farine("farine", "grammes");
-    Produit beurre("beurre", "grammes");
-    Produit sucreGlace("sucre glace", "grammes");
-    Produit chocolatNoir("chocolat noir", "grammes");
-    Produit amandesMoulues("amandes moulues", "grammes");
-    Produit extraitAmandes("extrait d'amandes", "gouttes");
-
-    ProduitCuisine glacage("glaçage au chocolat");
-    glacage.ajouterARecette(chocolatNoir, 200);
-    glacage.ajouterARecette(beurre, 25);
-    glacage.ajouterARecette(sucreGlace, 100);
-
-    ProduitCuisine glacageParfume("glaçage au chocolat parfumé");
-    glacageParfume.ajouterARecette(extraitAmandes, 2);
-    glacageParfume.ajouterARecette(glacage, 1);
-
-    Recette recette("tourte glacée au chocolat");
-    recette.ajouter(oeufs, 5);
-    recette.ajouter(farine, 150);
-    recette.ajouter(beurre, 100);
-    recette.ajouter(amandesMoulues, 50);
-    recette.ajouter(glacageParfume, 2);
-    
-    cout << bool(recette.quantiteTotale("beurre") == 150.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
-
-    Recette doubleRecette = recette.adapter(2);
-    cout << bool(doubleRecette.quantiteTotale("beurre") == 300.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
-    cout << bool(doubleRecette.quantiteTotale("oeufs") == 10.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
-    cout << bool(doubleRecette.quantiteTotale("extrait d'amandes") == 8.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
-    cout << bool(doubleRecette.quantiteTotale("glaçage au chocolat") == 4.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
-  }
-}
-
-//====================================================
-void testProduitCusine_Ingredient() {
-  {
-    ProduitCuisine p("omelette");
-    Produit oeufs("oeufs");
-    Produit sel("sel", "pincée(s)");
-    Produit beurre("beurre", "gramme(s)");
-    p.ajouterARecette(oeufs, 2);
-    p.ajouterARecette(sel, 1);
-    p.ajouterARecette(beurre, 5);
-    Ingredient i(p, 2);
-    cout << bool(i.getProduit().toString() == p.toString()) << " | test Ingredient::getProduit()" << endl;
-    cout << bool(i.getProduit().adapter(2)->toString() == p.adapter(2)->toString()) << " | test Ingredient::adapter()"<< endl;
-    cout << " | test Ingredient::descriptionAdaptee()" << endl << i.descriptionAdaptee() << endl;
-    cout << endl;
-  }
-}
-//====================================================
-void test() {
-  cout << boolalpha;
-  cout << "--- Test Produit ---" << endl;
-  testProduit();
-  cout << endl;
-  cout << "--- Test Ingredient ---" << endl;
-  testIngredient();
-  cout << endl;
-  cout << "--- Test Recette ---" << endl;
-  testRecette();
-  cout << endl;
-  cout << "--- Test ProduitCuisine ---" << endl;
-  testProduitCusine();
-  cout << "--- Test ProduitCuisine & Ingredient ---" << endl;
-  testProduitCusine_Ingredient();
-}
-
-void test_debug() {
-  cout << boolalpha;
-  cout << "--- Test 1 ---" << endl;
-  test_debug1();
-  cout << endl;
-}
 
 /*******************************************
  * Ne rien modifier après cette ligne.
