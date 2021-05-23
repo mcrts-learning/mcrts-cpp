@@ -32,7 +32,7 @@ class Navire
   /*****************************************************
    * Compléter le code à partir d'ici
    *****************************************************/
-private:
+protected:
   Coordonnees position_;
   Pavillon pavillon_;
   Etat etat_;
@@ -103,7 +103,7 @@ string as_string(Etat inst)
       case Intact:
         return "intact";
       case Endommage:
-        return "yant subi des dommages";
+        return "ayant subi des dommages";
       case Coule:
         return "coulé";
       default:
@@ -160,11 +160,30 @@ public:
 };
 
 void Pirate::attaque(Navire& rhs)
-  {}
+  {
+    cout << "A l'abordage !" << endl;
+    rhs.est_touche();
+  }
 void Pirate::replique(Navire& rhs)
-  {}
+  {
+    if (etat_ != Coule) {
+      cout << "Non mais, ils nous attaquent ! On riposte !!" << endl;
+      this->attaque(rhs);
+    }
+  }
 void Pirate::est_touche()
-  {}
+  {
+    switch (Navire::etat_) {
+      case Intact:
+        Navire::etat_ = Endommage;
+        break;
+      case Endommage:
+        Navire::etat_ = Coule;
+        break;
+      case Coule:
+        break;
+    }
+  }
 string Pirate::toString() const
   { return "bateau pirate" + Navire::toString();  }
 
@@ -181,11 +200,16 @@ public:
   string toString() const override;
 };
 void Marchand::attaque(Navire& rhs)
-  {}
+  { cout << "On vous aura ! (insultes) " << endl; }
 void Marchand::replique(Navire& rhs)
-  {}
+  {
+    if (etat_ == Coule)
+      cout << "SOS je coule !" << endl;
+    else
+      cout << "Même pas peur !" << endl;
+  }
 void Marchand::est_touche()
-  {}
+  { etat_ = Coule; }
 string Marchand::toString() const
   { return "navire marchand" + Navire::toString();  }
 
@@ -205,30 +229,17 @@ Felon::Felon(int x, int y, Pavillon pavillon, Etat etat=Intact)
   : Navire(x, y, pavillon, etat), Pirate(x, y, pavillon, etat), Marchand(x, y, pavillon, etat) {}
 
 void Felon::attaque(Navire& rhs)
-  {}
+  { Pirate::attaque(rhs); }
 void Felon::replique(Navire& rhs)
-  {}
+  { Marchand::replique(rhs); }
 void Felon::est_touche()
-  {}
+  { Pirate::est_touche(); }
 string Felon::toString() const
   { return "navire félon" + Navire::toString();  }
-//======================================================
-/*
-int main() {
-  Pirate ship1(0, 0, JollyRogers);
-  cout << ship1.toString() << endl;
-  Marchand ship2(25, 0, CompagnieDuSenegal);
-  cout << ship2.toString() << endl;
-  Felon ship6(32, 10, CompagnieDuSenegal);
-  cout << ship6.toString() << endl;
-  ship6.test();
-  
-  return 0;
-}*/
+
 /*******************************************
  * Ne rien modifier après cette ligne.
  *******************************************/
-
 void rencontre(Navire& ship1, Navire& ship2)
 {
   cout << "Avant la rencontre :" << endl;
