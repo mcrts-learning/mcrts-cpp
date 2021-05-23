@@ -20,6 +20,8 @@ public:
   string getUnite() const;
   virtual string toString() const;
   virtual const Produit* adapter(double) const;
+  virtual double quantiteTotale(string const&) const;
+
 };
 Produit::Produit(string nom, string unite="")
   : nom(nom), unite(unite) {}
@@ -29,11 +31,16 @@ string Produit::getNom() const
 string Produit::getUnite() const
   { return unite; }
 string Produit::toString() const
-  { 
-    cout << "-- \t TEST : in Produit::toString \t --" << endl;
-    return getNom(); }
+  { return getNom(); }
 const Produit* Produit::adapter(double quantite) const
   { return this; }
+double Produit::quantiteTotale(string const& nom_produit) const
+  {
+    if (nom_produit == nom)
+      return 1.0;
+    else
+      return 0.0;
+  }
 
 inline bool operator==(Produit const& lhs, Produit const& rhs)
   { return bool(lhs.getNom() == rhs.getNom() and lhs.getUnite() == rhs.getUnite()); }
@@ -46,13 +53,14 @@ void testProduit() {
   cout << bool(p.getUnite() == "") << " | test Produit::getUnite()" << endl;
   cout << bool(p.toString() == "oeufs") << " | test Produit::toString()" << endl;
   cout << bool(*p.adapter(2) == p) << " | test Produit::adapter()" << endl;
+  cout << bool(p.quantiteTotale("oeufs") == 1.0) << " | test Produit::quantiteTotale()" << endl;
+  cout << bool(p.quantiteTotale("sel") == 0.0) << " | test Produit::quantiteTotale()" << endl;
 }
 //====================================================
-typedef unique_ptr<Produit> pProduit;
 
 class Ingredient {
 private:
-  pProduit produit;
+  Produit const& produit;
   double quantite;
 public:
   Ingredient(Produit const&, double);
@@ -60,18 +68,20 @@ public:
   const Produit& getProduit() const;
   double getQuantite() const;
   string descriptionAdaptee() const;
+  double quantiteTotale(string const&) const;
 };
 
 Ingredient::Ingredient(Produit const& p, double quantite)
-  : produit(new Produit(p.getNom(), p.getUnite())), quantite(quantite) {}
+  : produit(p), quantite(quantite) {}
 Ingredient::~Ingredient() {}
 const Produit& Ingredient::getProduit() const
-  { return *produit; }
+  { return produit; }
 double Ingredient::getQuantite() const
   { return quantite; }
 string Ingredient::descriptionAdaptee() const
-  { return to_string(quantite) + " " + produit->getUnite() + " de " + produit->adapter(quantite)->toString(); }
-
+  { return to_string(quantite) + " " + produit.getUnite() + " de " + produit.adapter(quantite)->toString(); }
+double Ingredient::quantiteTotale(string const& nom_produit) const
+  { return produit.quantiteTotale(nom_produit) * quantite; }
 
 void testIngredient() {
   {
@@ -81,6 +91,8 @@ void testIngredient() {
       cout << bool(i.getQuantite() == 2) << " | test Ingredient::getQuantite()" << endl;
       cout << bool(i.getProduit() == p) << " | test Ingredient::getProduit()" << endl;
       cout << bool(i.descriptionAdaptee() == "2.000000  de oeufs") << " | test Ingredient::descriptionAdaptee()" << endl;
+      cout << bool(i.quantiteTotale("oeufs") == 2.0) << " | test Ingredient::quantiteTotale()" << endl;
+      cout << bool(i.quantiteTotale("sel") == 0.0) << " | test Ingredient::quantiteTotale()" << endl;
     }
 
     {
@@ -115,7 +127,7 @@ public:
   void ajouter(Produit const&, double);
   Recette adapter(int) const;
   string toString() const;
-  double quantiteTotale(string&) const;
+  double quantiteTotale(string const&) const;
 };
 
 Recette::Recette(string nom, double nbFois_=1.)
@@ -148,7 +160,14 @@ string Recette::toString() const
     }
     return msg.str();
   }
-double Recette::quantiteTotale(string& nom) const {return 0;}
+double Recette::quantiteTotale(string const& nom_produit) const
+  {
+    double count(0);
+    for (auto& i :  ingredients)
+      count += i->quantiteTotale(nom_produit);
+    return count;
+  }
+
 
 void testRecette() {
   {
@@ -160,6 +179,17 @@ void testRecette() {
     r.ajouter(p, 2);
     oss << endl << "  1. 2.000000  de oeufs";
     cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
+    cout << bool(r.quantiteTotale("oeufs") == 2.0) << " | test Recette::quantiteTotale()" << endl;
+    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
+  }
+
+  {
+    Produit p("oeufs");
+    Recette r("omelette");
+    r.ajouter(p, 2);
+    r.ajouter(p, 10);
+    cout << bool(r.quantiteTotale("oeufs") == 12.0) << " | test Recette::quantiteTotale()" << endl;
+    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
   }
 
   {
@@ -171,6 +201,8 @@ void testRecette() {
     r.ajouter(p, 2);
     oss << endl << "  1. 4.000000  de oeufs";
     cout << bool(r.toString() == oss.str()) << " | test Recette::toString()" << endl;
+    cout << bool(r.quantiteTotale("oeufs") == 4.0) << " | test Recette::quantiteTotale()" << endl;
+    cout << bool(r.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
   }
 
   {
@@ -182,6 +214,8 @@ void testRecette() {
     oss << "  Recette " << '"' << "omelette pour deux" << '"' << " x 10:";
     oss << endl << "  1. 20.000000  de oeufs";
     cout << bool(r_adpat.toString() == oss.str()) << " | test Recette::toString()" << endl;
+    cout << bool(r_adpat.quantiteTotale("oeufs") == 20.0) << " | test Recette::quantiteTotale()" << endl;
+    cout << bool(r_adpat.quantiteTotale("sel") == 0.0) << " | test Recette::quantiteTotale()" << endl;
   }
 
   {
@@ -201,32 +235,39 @@ class ProduitCuisine: public Produit {
 private:
   Recette recette;
 public:
-  ProduitCuisine(string, string);
+  ProduitCuisine(string, string, double);
   ~ProduitCuisine();
   void ajouterARecette(Produit const&, double);
   const ProduitCuisine* adapter(double n) const override;
   string toString() const override;
+  double quantiteTotale(string const&) const override;
 };
 
-ProduitCuisine::ProduitCuisine(string nom, string unite="portion(s)")
-  : Produit(nom, unite), recette(Recette(nom)) {}
+ProduitCuisine::ProduitCuisine(string nom, string unite="portion(s)", double nbFois_=1.)
+  : Produit(nom, unite), recette(Recette(nom, nbFois_)) {}
 ProduitCuisine::~ProduitCuisine() {}
 void ProduitCuisine::ajouterARecette(Produit const& produit, double quantite)
   { recette.ajouter(produit, quantite); }
 const ProduitCuisine* ProduitCuisine::adapter(double n) const
   {
-    ProduitCuisine* produit = new ProduitCuisine(nom, unite);
+    ProduitCuisine* produit = new ProduitCuisine(nom, unite, n);
     for (auto& i : this->recette.adapter(n).ingredients)
-      produit->recette.ajouter(i->getProduit(), i->getQuantite());
+      produit->recette.ajouter(i->getProduit(), i->getQuantite() / n);
     return produit;
   }
 string ProduitCuisine::toString() const
   {
-    cout << "-- \t TEST : in ProduitCuisine::toString \t --" << endl;
     ostringstream msg;
     msg << Produit::toString() << endl
         << this->recette.toString();
     return msg.str();
+  }
+double ProduitCuisine::quantiteTotale(string const& nom_produit) const
+  { 
+    if (nom_produit == nom)
+      return 1.0;
+    else
+      return recette.quantiteTotale(nom_produit);
   }
 
 void testProduitCusine() {
@@ -253,22 +294,54 @@ void testProduitCusine() {
     cout << " | test ProduitCuisine::adapter()" << endl << p.adapter(2)->toString() << endl;
     cout << endl;
   }
+  {
+    Produit oeufs("oeufs");
+    Produit farine("farine", "grammes");
+    Produit beurre("beurre", "grammes");
+    Produit sucreGlace("sucre glace", "grammes");
+    Produit chocolatNoir("chocolat noir", "grammes");
+    Produit amandesMoulues("amandes moulues", "grammes");
+    Produit extraitAmandes("extrait d'amandes", "gouttes");
+
+    ProduitCuisine glacage("glaçage au chocolat");
+    glacage.ajouterARecette(chocolatNoir, 200);
+    glacage.ajouterARecette(beurre, 25);
+    glacage.ajouterARecette(sucreGlace, 100);
+
+    ProduitCuisine glacageParfume("glaçage au chocolat parfumé");
+    glacageParfume.ajouterARecette(extraitAmandes, 2);
+    glacageParfume.ajouterARecette(glacage, 1);
+
+    Recette recette("tourte glacée au chocolat");
+    recette.ajouter(oeufs, 5);
+    recette.ajouter(farine, 150);
+    recette.ajouter(beurre, 100);
+    recette.ajouter(amandesMoulues, 50);
+    recette.ajouter(glacageParfume, 2);
+    
+    cout << bool(recette.quantiteTotale("beurre") == 150.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
+
+    Recette doubleRecette = recette.adapter(2);
+    cout << bool(doubleRecette.quantiteTotale("beurre") == 300.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
+    cout << bool(doubleRecette.quantiteTotale("oeufs") == 10.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
+    cout << bool(doubleRecette.quantiteTotale("extrait d'amandes") == 8.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
+    cout << bool(doubleRecette.quantiteTotale("glaçage au chocolat") == 4.0) << " | test ProduitCuisine::quantiteTotale()" << endl;
+  }
 }
 
 //====================================================
 void testProduitCusine_Ingredient() {
   {
     ProduitCuisine p("omelette");
-    p.ajouterARecette(Produit("oeufs"), 2);
-    p.ajouterARecette(Produit("sel", "pincée(s)"), 1);
-    p.ajouterARecette(Produit("beurre", "gramme(s)"), 5);
+    Produit oeufs("oeufs");
+    Produit sel("sel", "pincée(s)");
+    Produit beurre("beurre", "gramme(s)");
+    p.ajouterARecette(oeufs, 2);
+    p.ajouterARecette(sel, 1);
+    p.ajouterARecette(beurre, 5);
     Ingredient i(p, 2);
     cout << bool(i.getProduit().toString() == p.toString()) << " | test Ingredient::getProduit()" << endl;
-    cout << i.getProduit().toString() << endl;
-    cout << p.toString() << endl;
     cout << bool(i.getProduit().adapter(2)->toString() == p.adapter(2)->toString()) << " | test Ingredient::adapter()"<< endl;
-    cout << i.getProduit().adapter(2)->toString() << endl;
-    cout << p.adapter(2)->toString() << endl;
     cout << " | test Ingredient::descriptionAdaptee()" << endl << i.descriptionAdaptee() << endl;
     cout << endl;
   }
@@ -291,6 +364,12 @@ void test() {
   testProduitCusine_Ingredient();
 }
 
+void test_debug() {
+  cout << boolalpha;
+  cout << "--- Test 1 ---" << endl;
+  test_debug1();
+  cout << endl;
+}
 
 /*******************************************
  * Ne rien modifier après cette ligne.
@@ -304,8 +383,6 @@ void afficherQuantiteTotale(const Recette& recette, const Produit& produit)
 
 int main()
 {
-  test();
-  /*
   // quelques produits de base
   Produit oeufs("oeufs");
   Produit farine("farine", "grammes");
@@ -356,6 +433,6 @@ int main()
   cout << "===========================\n" << endl;
   cout << "Vérification que le glaçage n'a pas été modifié :\n";
   cout << glacage.toString() << endl;
-*/
+
   return 0;
 }
