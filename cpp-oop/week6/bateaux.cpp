@@ -38,7 +38,7 @@ protected:
   Etat etat_;
   static const int rayon_rencontre = 10;
 public:
-  Navire(int, int, Pavillon, Etat);
+  Navire(int, int, Pavillon);
 
   void avancer(int, int);
   void renflouer();
@@ -60,11 +60,15 @@ void Coordonnees::operator+=(Coordonnees const& rhs)
   }
 double distance(Coordonnees const& lhs, Coordonnees const& rhs)
   { return sqrt(sq(lhs.x() - rhs.x()) + sq(lhs.y() - rhs.y())); }
-string to_string(Coordonnees const& inst)
-  { return "(" + to_string(inst.x()) + ", " + to_string(inst.y()) + ")"; }
+string as_string(Coordonnees const& inst)
+  { 
+    int x(inst.x());
+    int y(inst.y());
+    return "(" + to_string(x) + ", " + to_string(y) + ")";
+  }
 ostream& operator<<(ostream& ostr, Coordonnees const& inst)
  {
-   ostr << to_string(inst);
+   ostr << as_string(inst);
    return ostr;
  }
 
@@ -117,8 +121,8 @@ ostream& operator<<(ostream& ostr, Etat inst)
   }
 //======================================================
 
-Navire::Navire(int x, int y, Pavillon pavillon, Etat etat=Intact)
-  : position_(x, y), pavillon_(pavillon), etat_(etat) {}
+Navire::Navire(int x, int y, Pavillon pavillon)
+  : position_(x, y), pavillon_(pavillon), etat_(Intact) {}
 
 void Navire::renflouer()
   { etat_ = Intact; }
@@ -130,7 +134,12 @@ void Navire::avancer(int x, int y)
 
 void Navire::rencontrer(Navire& rhs)
   {
-    if (distance(*this, rhs) <= rayon_rencontre) {
+    if (
+        (distance(*this, rhs) <= rayon_rencontre)
+        and (this->etat_ != Coule)
+        and (rhs.etat_ != Coule)
+        and (this->pavillon_ != rhs.pavillon_)
+      ) {
       this->attaque(rhs);
       rhs.replique(*this);
     }
@@ -141,7 +150,7 @@ const Coordonnees& Navire::position() const
 string Navire::toString() const
   { 
     string msg;
-    msg += " en " + to_string(position()) + " battant pavillon " + as_string(pavillon_) + ", " + as_string(etat_);
+    msg += " en " + as_string(position()) + " battant pavillon " + as_string(pavillon_) + ", " + as_string(etat_);
     return msg;
   }
 void Navire::afficher(ostream& ostr) const
@@ -161,8 +170,10 @@ public:
 
 void Pirate::attaque(Navire& rhs)
   {
-    cout << "A l'abordage !" << endl;
-    rhs.est_touche();
+    if (etat_ != Coule) {
+      cout << "A l'abordage !" << endl;
+      rhs.est_touche();
+    }
   }
 void Pirate::replique(Navire& rhs)
   {
@@ -200,7 +211,10 @@ public:
   string toString() const override;
 };
 void Marchand::attaque(Navire& rhs)
-  { cout << "On vous aura ! (insultes) " << endl; }
+  {
+    if (etat_ != Coule)
+      cout << "On vous aura ! (insultes) " << endl;
+    }
 void Marchand::replique(Navire& rhs)
   {
     if (etat_ == Coule)
@@ -217,7 +231,7 @@ string Marchand::toString() const
 
 class Felon: public Pirate, public Marchand {
 public:
-  Felon(int, int, Pavillon, Etat);
+  Felon(int, int, Pavillon);
 
   void attaque(Navire& rhs) override;
   void replique(Navire& rhs) override;
@@ -225,8 +239,8 @@ public:
 
   string toString() const override;
 };
-Felon::Felon(int x, int y, Pavillon pavillon, Etat etat=Intact)
-  : Navire(x, y, pavillon, etat), Pirate(x, y, pavillon, etat), Marchand(x, y, pavillon, etat) {}
+Felon::Felon(int x, int y, Pavillon pavillon)
+  : Navire(x, y, pavillon), Pirate(x, y, pavillon), Marchand(x, y, pavillon) {}
 
 void Felon::attaque(Navire& rhs)
   { Pirate::attaque(rhs); }
@@ -240,6 +254,7 @@ string Felon::toString() const
 /*******************************************
  * Ne rien modifier après cette ligne.
  *******************************************/
+
 void rencontre(Navire& ship1, Navire& ship2)
 {
   cout << "Avant la rencontre :" << endl;
@@ -309,4 +324,3 @@ int main()
 
   return 0;
 }
-
