@@ -2,5 +2,5 @@
 
 #### Coursera
 
-- *Initiation à la programmation (en Java)* : https://www.coursera.org/learn/initiation-programmation-java/home/welcome
-- *Introduction à la programmation orientée objet (en Java)* : https://www.coursera.org/learn/programmation-orientee-objet-java/home/welcome
+- *Introduction to C++* : https://www.coursera.org/learn/initiation-programmation-cpp/home/welcome
+- *Object Oriented Programming with C++* : https://www.coursera.org/learn/programmation-orientee-objet-cpp/home/welcome
